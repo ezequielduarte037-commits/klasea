@@ -1,0 +1,15 @@
+# Imágenes de modelos Klase A
+
+Este directorio debe contener las imágenes de los diferentes modelos de embarcaciones:
+
+- klase-85.jpg (Modelo 85 - 26m)
+- klase-64.jpg (Modelo 64 - 19.5m) 
+- klase-52.jpg (Modelo 52 - 15.8m)
+- klase-43.jpg (Modelo 43 - 13.1m)
+- klase-42.jpg (Modelo 42 - 12.8m)
+- klase-37.jpg (Modelo 37 - 11.3m)
+- klase-34.jpg (Modelo 34 - 10.4m)
+
+Las imágenes deben ser de alta calidad, mostrando la embarcación desde un ángulo lateral o 3/4, con fondo marino o neutro.
+
+Dimensiones recomendadas: 1200x800px o similar (16:10 ratio)
