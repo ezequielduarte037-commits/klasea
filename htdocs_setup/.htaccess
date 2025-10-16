@@ -1,0 +1,38 @@
+# Configuración para Panel Operativo Editorial
+
+# Habilitar mod_rewrite
+RewriteEngine On
+
+# Redirigir a login si no está autenticado
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/login\.php$
+RewriteCond %{REQUEST_URI} !^/api/
+RewriteRule ^(.*)$ login.php [L]
+
+# Configuración de seguridad
+<Files "config/database.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+<Files "*.sql">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Configuración de PHP
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 30
+    php_value max_input_vars 3000
+</IfModule>
