@@ -1,0 +1,69 @@
+# Klase A - Panel de Propietarios
+# Archivos y directorios a ignorar en Git
+
+# Archivos de configuración con credenciales
+php/config.php
+
+# Copias de seguridad de base de datos
+*.sql.backup
+*.sql.gz
+database/backup/
+
+# Logs
+*.log
+logs/
+error_log
+
+# Archivos temporales
+*.tmp
+*.temp
+*.cache
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs y editores
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# Dependencias (si se usan en el futuro)
+/vendor/
+/node_modules/
+composer.lock
+package-lock.json
+
+# Archivos subidos por usuarios
+uploads/*
+!uploads/.gitkeep
+
+# Sesiones de PHP
+/tmp/
+/sessions/
+
+# Archivos de entorno
+.env
+.env.local
+.env.production
+
+# Compilados
+*.compiled
+
+# Imágenes grandes o temporales
+assets/img/temp/
+assets/img/*.psd
+assets/img/*.ai
+
+# Archivos de sistema
+*.swp
+*.swo
+*~
+
+# Testing
+/tests/coverage/
+/tests/tmp/
