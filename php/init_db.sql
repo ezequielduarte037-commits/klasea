@@ -1,0 +1,14 @@
+-- Create database and table
+CREATE DATABASE IF NOT EXISTS klasea_clients CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE klasea_clients;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre_completo VARCHAR(120) NOT NULL,
+  email VARCHAR(160) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  modelo_barco ENUM('85','64','52','43','42','37','34') NOT NULL,
+  imagen_unidad VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
