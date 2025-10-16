@@ -1,0 +1,598 @@
+<!doctype html><html lang="es"><head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Klase A — Panel Operativo "Editorial"</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Roboto:wght@300;400&display=swap');
+    
+    :root {
+      --bg-dark: #000000;
+      --text-primary: #FFFFFF;
+      --text-secondary: #A0A0A0;
+      --border-color: #333333;
+      --accent-color: #FFFFFF;
+      --font-display: 'Montserrat', sans-serif;
+      --font-body: 'Roboto', sans-serif;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-dark);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .main-container {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        min-height: 100vh;
+    }
+
+    #side-nav {
+        background-color: var(--bg-dark);
+        border-right: 1px solid var(--border-color);
+        padding: 2.5rem;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s ease, border-color 0.3s ease;
+        border-left: 3px solid transparent;
+        padding-left: 1rem;
+        cursor: pointer;
+    }
+    .nav-item:hover {
+        color: var(--text-primary);
+    }
+    .nav-item.active {
+        color: var(--accent-color);
+        border-left-color: var(--accent-color);
+    }
+    .nav-number {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1.5rem;
+        width: 40px;
+    }
+    .nav-title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+    }
+    
+    main {
+        padding: 3rem;
+        overflow-y: auto;
+        height: 100vh;
+    }
+    
+    .content-section { display: none; }
+    .content-section.active { display: block; animation: fadeIn 0.5s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .section-header h1 {
+        font-family: var(--font-display);
+        font-size: 2.5rem;
+        font-weight: 700;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+     .section-header p {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        max-width: 80ch;
+     }
+
+    .card {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        backdrop-filter: blur(10px);
+    }
+
+    .metric-card {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .metric-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .metric-value {
+        font-family: var(--font-display);
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin-bottom: 0.5rem;
+    }
+
+    .metric-label {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 400px;
+        margin: 2rem 0;
+    }
+
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-pendiente { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+    .status-en-proceso { background: rgba(0, 123, 255, 0.2); color: #007bff; border: 1px solid rgba(0, 123, 255, 0.3); }
+    .status-completado { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.3); }
+    .status-cancelado { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.3); }
+
+    .priority-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .priority-baja { background: rgba(108, 117, 125, 0.2); color: #6c757d; }
+    .priority-media { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+    .priority-alta { background: rgba(255, 87, 34, 0.2); color: #ff5722; }
+    .priority-urgente { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <nav id="side-nav">
+      <div class="nav-item active" data-section="dashboard">
+        <span class="nav-number">01</span>
+        <span class="nav-title">Dashboard</span>
+      </div>
+      
+      <div class="nav-item" data-section="operaciones">
+        <span class="nav-number">02</span>
+        <span class="nav-title">Operaciones</span>
+      </div>
+      
+      <div class="nav-item" data-section="metricas">
+        <span class="nav-number">03</span>
+        <span class="nav-title">Métricas</span>
+      </div>
+      
+      <div class="nav-item" data-section="reportes">
+        <span class="nav-number">04</span>
+        <span class="nav-title">Reportes</span>
+      </div>
+      
+      <div class="nav-item" data-section="configuracion">
+        <span class="nav-number">05</span>
+        <span class="nav-title">Configuración</span>
+      </div>
+    </nav>
+
+    <main>
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="content-section active">
+        <div class="section-header">
+          <h1>Dashboard</h1>
+          <p>Vista general del estado operativo del sistema editorial</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div class="metric-card">
+            <div class="metric-value">24</div>
+            <div class="metric-label">Total Operaciones</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">18</div>
+            <div class="metric-label">Completadas</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">4</div>
+            <div class="metric-label">Pendientes</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-value">85%</div>
+            <div class="metric-label">Eficiencia</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="card">
+            <h3 class="text-xl font-semibold mb-4">Operaciones por Estado</h3>
+            <div class="chart-container">
+              <canvas id="estadoChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3 class="text-xl font-semibold mb-4">Operaciones por Prioridad</h3>
+            <div class="chart-container">
+              <canvas id="prioridadChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Operaciones Section -->
+      <section id="operaciones" class="content-section">
+        <div class="section-header">
+          <h1>Gestión de Operaciones</h1>
+          <p>Administra y monitorea todas las operaciones editoriales</p>
+        </div>
+
+        <div class="card">
+          <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-semibold">Lista de Operaciones</h3>
+            <button class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <i class="fas fa-plus mr-2"></i>Nueva Operación
+            </button>
+          </div>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-600">
+                  <th class="text-left py-3 px-4">Título</th>
+                  <th class="text-left py-3 px-4">Tipo</th>
+                  <th class="text-left py-3 px-4">Estado</th>
+                  <th class="text-left py-3 px-4">Prioridad</th>
+                  <th class="text-left py-3 px-4">Asignado</th>
+                  <th class="text-left py-3 px-4">Vencimiento</th>
+                  <th class="text-left py-3 px-4">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                  <td class="py-3 px-4">Revisión de artículo sobre tecnología</td>
+                  <td class="py-3 px-4 capitalize">revisión</td>
+                  <td class="py-3 px-4">
+                    <span class="status-badge status-pendiente">pendiente</span>
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class="priority-badge priority-alta">alta</span>
+                  </td>
+                  <td class="py-3 px-4">Carlos Pérez</td>
+                  <td class="py-3 px-4">2024-02-15</td>
+                  <td class="py-3 px-4">
+                    <button class="text-blue-400 hover:text-blue-300 mr-2">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-400 hover:text-red-300">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                  <td class="py-3 px-4">Diseño de portada revista</td>
+                  <td class="py-3 px-4 capitalize">diseño</td>
+                  <td class="py-3 px-4">
+                    <span class="status-badge status-en-proceso">en proceso</span>
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class="priority-badge priority-media">media</span>
+                  </td>
+                  <td class="py-3 px-4">Ana García</td>
+                  <td class="py-3 px-4">2024-02-20</td>
+                  <td class="py-3 px-4">
+                    <button class="text-blue-400 hover:text-blue-300 mr-2">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-400 hover:text-red-300">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                  <td class="py-3 px-4">Edición de entrevista</td>
+                  <td class="py-3 px-4 capitalize">edición</td>
+                  <td class="py-3 px-4">
+                    <span class="status-badge status-pendiente">pendiente</span>
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class="priority-badge priority-baja">baja</span>
+                  </td>
+                  <td class="py-3 px-4">Sin asignar</td>
+                  <td class="py-3 px-4">2024-02-25</td>
+                  <td class="py-3 px-4">
+                    <button class="text-blue-400 hover:text-blue-300 mr-2">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-400 hover:text-red-300">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                <tr class="border-b border-gray-700 hover:bg-gray-800/50">
+                  <td class="py-3 px-4">Publicación de noticias</td>
+                  <td class="py-3 px-4 capitalize">publicación</td>
+                  <td class="py-3 px-4">
+                    <span class="status-badge status-completado">completado</span>
+                  </td>
+                  <td class="py-3 px-4">
+                    <span class="priority-badge priority-media">media</span>
+                  </td>
+                  <td class="py-3 px-4">María López</td>
+                  <td class="py-3 px-4">2024-02-10</td>
+                  <td class="py-3 px-4">
+                    <button class="text-blue-400 hover:text-blue-300 mr-2">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="text-red-400 hover:text-red-300">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Métricas Section -->
+      <section id="metricas" class="content-section">
+        <div class="section-header">
+          <h1>Análisis de Métricas</h1>
+          <p>Indicadores de rendimiento y análisis detallado</p>
+        </div>
+
+        <div class="card">
+          <h3 class="text-xl font-semibold mb-4">Tendencia de Operaciones (30 días)</h3>
+          <div class="chart-container">
+            <canvas id="tendenciaChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Reportes Section -->
+      <section id="reportes" class="content-section">
+        <div class="section-header">
+          <h1>Reportes</h1>
+          <p>Genera y descarga reportes detallados del sistema</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="card">
+            <h3 class="text-lg font-semibold mb-3">Reporte de Operaciones</h3>
+            <p class="text-gray-400 mb-4">Genera un reporte completo de todas las operaciones</p>
+            <button class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <i class="fas fa-download mr-2"></i>Generar PDF
+            </button>
+          </div>
+          
+          <div class="card">
+            <h3 class="text-lg font-semibold mb-3">Reporte de Métricas</h3>
+            <p class="text-gray-400 mb-4">Análisis detallado de rendimiento</p>
+            <button class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <i class="fas fa-chart-line mr-2"></i>Generar Excel
+            </button>
+          </div>
+          
+          <div class="card">
+            <h3 class="text-lg font-semibold mb-3">Reporte de Usuarios</h3>
+            <p class="text-gray-400 mb-4">Actividad y rendimiento por usuario</p>
+            <button class="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+              <i class="fas fa-users mr-2"></i>Generar CSV
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Configuración Section -->
+      <section id="configuracion" class="content-section">
+        <div class="section-header">
+          <h1>Configuración del Sistema</h1>
+          <p>Administra la configuración general del panel</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div class="card">
+            <h3 class="text-xl font-semibold mb-4">Información del Sistema</h3>
+            <div class="space-y-3">
+              <div class="flex justify-between">
+                <span class="text-gray-400">Versión:</span>
+                <span>1.0.0</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">Base de Datos:</span>
+                <span class="text-green-400">Conectada</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-gray-400">Última Actualización:</span>
+                <span>2024-02-15</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <h3 class="text-xl font-semibold mb-4">Acciones del Sistema</h3>
+            <div class="space-y-3">
+              <button class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i class="fas fa-sync mr-2"></i>Actualizar Datos
+              </button>
+              <button class="w-full bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
+                <i class="fas fa-database mr-2"></i>Respaldar Base de Datos
+              </button>
+              <button class="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                <i class="fas fa-trash mr-2"></i>Limpiar Cache
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // Navegación
+    document.addEventListener('DOMContentLoaded', function() {
+      const navItems = document.querySelectorAll('.nav-item');
+      const sections = document.querySelectorAll('.content-section');
+
+      navItems.forEach(item => {
+        item.addEventListener('click', () => {
+          const targetSection = item.dataset.section;
+          
+          // Actualizar navegación
+          navItems.forEach(nav => nav.classList.remove('active'));
+          item.classList.add('active');
+          
+          // Mostrar sección
+          sections.forEach(section => section.classList.remove('active'));
+          document.getElementById(targetSection).classList.add('active');
+        });
+      });
+
+      // Inicializar gráficos
+      initializeCharts();
+    });
+
+    function initializeCharts() {
+      // Gráfico de estado
+      const estadoCtx = document.getElementById('estadoChart').getContext('2d');
+      new Chart(estadoCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Completadas', 'Pendientes', 'En Proceso', 'Canceladas'],
+          datasets: [{
+            data: [18, 4, 2, 0],
+            backgroundColor: ['#28a745', '#ffc107', '#007bff', '#dc3545'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#A0A0A0',
+                padding: 20
+              }
+            }
+          }
+        }
+      });
+
+      // Gráfico de prioridad
+      const prioridadCtx = document.getElementById('prioridadChart').getContext('2d');
+      new Chart(prioridadCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Baja', 'Media', 'Alta', 'Urgente'],
+          datasets: [{
+            label: 'Operaciones',
+            data: [1, 2, 1, 0],
+            backgroundColor: ['#6c757d', '#ffc107', '#ff5722', '#dc3545'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#A0A0A0'
+              },
+              grid: {
+                color: '#333333'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#A0A0A0'
+              },
+              grid: {
+                color: '#333333'
+              }
+            }
+          }
+        }
+      });
+
+      // Gráfico de tendencia
+      const tendenciaCtx = document.getElementById('tendenciaChart').getContext('2d');
+      new Chart(tendenciaCtx, {
+        type: 'line',
+        data: {
+          labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+          datasets: [{
+            label: 'Operaciones por mes',
+            data: [12, 19, 15, 25, 22, 30],
+            borderColor: '#FFFFFF',
+            backgroundColor: 'rgba(255, 255, 255, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#A0A0A0'
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#A0A0A0'
+              },
+              grid: {
+                color: '#333333'
+              }
+            },
+            x: {
+              ticks: {
+                color: '#A0A0A0'
+              },
+              grid: {
+                color: '#333333'
+              }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
